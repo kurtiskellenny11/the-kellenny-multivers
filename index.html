@@ -1,0 +1,1394 @@
+<html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Kellenny Multivers - Base de Données</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px;
+            background: rgba(20, 20, 20, 0.8);
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #ff0000;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+            letter-spacing: 2px;
+        }
+
+        .mode-badge {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: bold;
+            border: 2px solid;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .mode-admin {
+            background: #ff0000;
+            color: #fff;
+            border-color: #ff0000;
+        }
+
+        .mode-readonly {
+            background: #666;
+            color: #fff;
+            border-color: #888;
+        }
+
+        .menu-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: #ff0000;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .side-menu {
+            position: fixed;
+            left: -350px;
+            top: 0;
+            width: 350px;
+            height: 100vh;
+            background: rgba(20, 20, 20, 0.98);
+            border-right: 2px solid #ff0000;
+            padding: 80px 20px 20px 20px;
+            transition: left 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            left: 0;
+        }
+
+        .menu-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .menu-section h3 {
+            color: #ff0000;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .menu-input {
+            width: 100%;
+            background: rgba(40, 40, 40, 0.8);
+            border: 1px solid #555;
+            color: #e0e0e0;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .menu-btn-action {
+            width: 100%;
+            padding: 10px;
+            background: #ff0000;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .menu-btn-action:hover {
+            background: #cc0000;
+        }
+
+        .menu-btn-secondary {
+            background: rgba(60, 60, 60, 0.8);
+            border: 1px solid #666;
+        }
+
+        .menu-btn-secondary:hover {
+            background: rgba(80, 80, 80, 0.9);
+        }
+
+        .database-id {
+            background: rgba(255, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            word-break: break-all;
+            color: #ff6666;
+        }
+
+        .changelog {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(40, 40, 40, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .changelog-entry {
+            padding: 8px;
+            margin-bottom: 8px;
+            background: rgba(60, 60, 60, 0.5);
+            border-left: 3px solid #ff0000;
+            font-size: 0.85em;
+        }
+
+        .changelog-date {
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            background: rgba(40, 40, 40, 0.8);
+            border: 2px solid #666;
+            color: #ccc;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+            transition: all 0.3s;
+            border-radius: 5px;
+        }
+
+        .tab-btn:hover {
+            background: rgba(60, 60, 60, 0.9);
+            border-color: #ff0000;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .tab-btn.active {
+            background: #ff0000;
+            color: #fff;
+            font-weight: bold;
+            border-color: #ff0000;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .character-card {
+            background: rgba(30, 30, 30, 0.9);
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(255, 0, 0, 0.4);
+            border-color: #ff0000;
+        }
+
+        .card-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .icon-btn {
+            background: rgba(60, 60, 60, 0.8);
+            border: 1px solid #666;
+            color: #ccc;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: #ff0000;
+            transform: scale(1.1);
+        }
+
+        .character-name {
+            font-size: 1.5em;
+            color: #ff0000;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .character-id {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .character-info {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .info-label {
+            color: #ff6666;
+            font-weight: bold;
+        }
+
+        .timeline-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        .timeline-originelle {
+            background: rgba(139, 0, 0, 0.3);
+            border: 1px solid #8b0000;
+            color: #ff6666;
+        }
+
+        .timeline-liberee {
+            background: rgba(0, 100, 0, 0.3);
+            border: 1px solid #006400;
+            color: #66ff66;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            background: rgba(30, 30, 30, 0.9);
+            border: 2px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(255, 0, 0, 0.4);
+            border-color: #ff0000;
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: #1a1a1a;
+        }
+
+        .gallery-info {
+            padding: 15px;
+        }
+
+        .gallery-character {
+            color: #ff0000;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .gallery-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .upload-zone {
+            border: 2px dashed #666;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: rgba(30, 30, 30, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover {
+            border-color: #ff0000;
+            background: rgba(40, 40, 40, 0.5);
+        }
+
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+
+        .add-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #ff0000;
+            border: none;
+            border-radius: 50%;
+            font-size: 2em;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.5);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.7);
+        }
+
+        .add-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .save-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 110px;
+            width: 60px;
+            height: 60px;
+            background: #00cc00;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5em;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 204, 0, 0.5);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .save-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 204, 0, 0.7);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #ccc;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: rgba(40, 40, 40, 0.8);
+            border: 1px solid #555;
+            color: #e0e0e0;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            border-radius: 5px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #ff0000;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .btn-save {
+            background: #ff0000;
+            color: #fff;
+        }
+
+        .btn-cancel {
+            background: rgba(60, 60, 60, 0.8);
+            color: #ccc;
+            border: 1px solid #666;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 0, 0, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .status-success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #0f0;
+            color: #0f0;
+        }
+
+        .status-error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #f00;
+            color: #f00;
+        }
+
+        .status-info {
+            background: rgba(255, 255, 0, 0.1);
+            border: 1px solid #ff0;
+            color: #ff0;
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-btn" id="menuToggle">☰</button>
+
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-section">
+            <h3>🔑 MODE</h3>
+            <div id="currentMode"></div>
+        </div>
+
+        <div class="menu-section" id="adminSection" style="display: none;">
+            <h3>📡 VOTRE BASE DE DONNÉES</h3>
+            <div class="database-id" id="databaseId">Chargement...</div>
+            <button class="menu-btn-action" onclick="copyDatabaseId()">📋 COPIER L'ID</button>
+            <p style="color: #888; font-size: 0.85em; margin-top: 10px;">Partagez cet ID pour donner un accès en lecture seule</p>
+        </div>
+
+        <div class="menu-section" id="connectSection">
+            <h3>🔌 SE CONNECTER À UNE BASE</h3>
+            <input type="text" class="menu-input" id="connectInput" placeholder="Entrez l'ID de la base">
+            <button class="menu-btn-action" onclick="connectToDatabase()">SE CONNECTER</button>
+        </div>
+
+        <div class="menu-section" id="disconnectSection" style="display: none;">
+            <button class="menu-btn-action menu-btn-secondary" onclick="disconnectDatabase()">SE DÉCONNECTER</button>
+        </div>
+
+        <div class="menu-section">
+            <h3>📝 HISTORIQUE DES MODIFICATIONS</h3>
+            <div class="changelog" id="changelog">
+                <div style="color: #666; text-align: center;">Aucune modification pour le moment</div>
+            </div>
+        </div>
+
+        <div id="statusMessages"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="mode-badge" id="modeBadge">CHARGEMENT...</div>
+            <h1>⚠ LE KELLENNY MULTIVERS ⚠</h1>
+            <div class="subtitle">BASE DE DONNÉES CONFIDENTIELLE</div>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" data-tab="protagonistes">PROTAGONISTES</button>
+            <button class="tab-btn" data-tab="antagonistes">ANTAGONISTES</button>
+            <button class="tab-btn" data-tab="neutres">NEUTRES</button>
+            <button class="tab-btn" data-tab="stands">STANDS</button>
+            <button class="tab-btn" data-tab="galerie">GALERIE</button>
+        </div>
+
+        <div id="protagonistes" class="content-section active">
+            <div class="character-grid" id="grid-protagonistes"></div>
+        </div>
+
+        <div id="antagonistes" class="content-section">
+            <div class="character-grid" id="grid-antagonistes"></div>
+        </div>
+
+        <div id="neutres" class="content-section">
+            <div class="character-grid" id="grid-neutres"></div>
+        </div>
+
+        <div id="stands" class="content-section">
+            <div class="character-grid" id="grid-stands"></div>
+        </div>
+
+        <div id="galerie" class="content-section">
+            <div id="uploadSection" style="display: none;">
+                <div class="upload-zone" onclick="document.getElementById('imageUpload').click()">
+                    <div style="font-size: 3em; margin-bottom: 10px;">📸</div>
+                    <div style="color: #ccc;">Cliquez pour ajouter une image</div>
+                    <input type="file" id="imageUpload" accept="image/*">
+                </div>
+            </div>
+            <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+
+        <button class="add-btn" id="addBtn">+</button>
+        <button class="save-btn" id="saveBtn" style="display: none;" title="Sauvegarder">💾</button>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 style="color: #ff0000; margin-bottom: 20px;" id="modalTitle">NOUVEAU DOSSIER</h2>
+            <form id="characterForm">
+                <input type="hidden" id="editIndex">
+                <input type="hidden" id="editCategory">
+                <div class="form-group">
+                    <label>NOM DU PERSONNAGE *</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label>CATÉGORIE *</label>
+                    <select id="category" required>
+                        <option value="protagonistes">Protagoniste</option>
+                        <option value="antagonistes">Antagoniste</option>
+                        <option value="neutres">Neutre</option>
+                        <option value="stands">Stand</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>TIMELINE *</label>
+                    <select id="timeline" required>
+                        <option value="liberee">Timeline Libérée</option>
+                        <option value="originelle">Timeline Originelle</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>RÔLE</label>
+                    <input type="text" id="role">
+                </div>
+                <div class="form-group">
+                    <label>AFFILIATION</label>
+                    <input type="text" id="affiliation">
+                </div>
+                <div class="form-group">
+                    <label>STATUT</label>
+                    <input type="text" id="status" placeholder="Actif, Inconnu, Décédé...">
+                </div>
+                <div class="form-group">
+                    <label>DESCRIPTION</label>
+                    <textarea id="description"></textarea>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-save">ENREGISTRER</button>
+                    <button type="button" class="btn btn-cancel" id="cancelBtn">ANNULER</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="galleryModal">
+        <div class="modal-content">
+            <h2 style="color: #ff0000; margin-bottom: 20px;">AJOUTER UNE IMAGE</h2>
+            <form id="galleryForm">
+                <input type="hidden" id="editGalleryIndex">
+                <div class="form-group">
+                    <label>IMAGE *</label>
+                    <div id="imagePreview" style="margin-bottom: 10px;"></div>
+                    <input type="file" id="galleryImageInput" accept="image/*" style="display: block;">
+                </div>
+                <div class="form-group">
+                    <label>PERSONNAGE REPRÉSENTÉ *</label>
+                    <select id="galleryCharacter" required>
+                        <option value="">-- Sélectionner --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>DESCRIPTION</label>
+                    <textarea id="galleryDescription"></textarea>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-save">ENREGISTRER</button>
+                    <button type="button" class="btn btn-cancel" id="cancelGalleryBtn">ANNULER</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let characters = {
+            protagonistes: [],
+            antagonistes: [],
+            neutres: [],
+            stands: []
+        };
+
+        let gallery = [];
+        let currentCategory = 'protagonistes';
+        let editMode = false;
+        let isAdmin = false;
+        let connectedDatabaseId = null;
+        let myDatabaseId = null;
+        let characterIdCounter = 1;
+        let changelog = [];
+
+        function generateCharacterId() {
+            return `KM-${String(characterIdCounter++).padStart(4, '0')}`;
+        }
+
+        function generateUniqueId() {
+            return 'KM-DB-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        async function init() {
+            const savedAdminId = localStorage.getItem('kellennyAdminId');
+            
+            if (savedAdminId) {
+                myDatabaseId = savedAdminId;
+                isAdmin = true;
+                await loadAdminData();
+            } else {
+                myDatabaseId = generateUniqueId();
+                localStorage.setItem('kellennyAdminId', myDatabaseId);
+                isAdmin = true;
+                await initializeAdminData();
+            }
+            
+            // Vérifier si on doit se connecter à une base
+            const connectedId = localStorage.getItem('kellennyConnectedId');
+            if (connectedId && connectedId !== myDatabaseId) {
+                connectedDatabaseId = connectedId;
+                isAdmin = false;
+                await loadConnectedData(connectedId);
+            }
+            
+            updateUI();
+            renderAllCategories();
+            renderGallery();
+        }
+
+        async function initializeAdminData() {
+            characters.protagonistes.push({
+                id: generateCharacterId(),
+                name: 'Exemple Héros',
+                category: 'protagonistes',
+                timeline: 'liberee',
+                role: 'Gardien du Multivers',
+                affiliation: 'Alliance Kellenny',
+                status: 'Actif',
+                description: 'Ceci est un exemple de personnage.'
+            });
+            
+            addToChangelog('Création', 'Base de données initialisée');
+            await saveToCloud();
+        }
+
+        async function loadAdminData() {
+            try {
+                const data = await window.storage.get(`kellenny-data-${myDatabaseId}`, true);
+                if (data && data.value) {
+                    const parsed = JSON.parse(data.value);
+                    characters = parsed.characters || {protagonistes: [], antagonistes: [], neutres: [], stands: []};
+                    gallery = parsed.gallery || [];
+                    changelog = parsed.changelog || [];
+                    characterIdCounter = parsed.characterIdCounter || 1;
+                }
+            } catch (error) {
+                console.log('Aucune donnée cloud trouvée, initialisation...');
+                characters = {protagonistes: [], antagonistes: [], neutres: [], stands: []};
+                gallery = [];
+                changelog = [];
+                characterIdCounter = 1;
+            }
+        }
+
+        async function loadConnectedData(connectedId) {
+            try {
+                const data = await window.storage.get(`kellenny-data-${connectedId}`, true);
+                if (data && data.value) {
+                    const parsed = JSON.parse(data.value);
+                    characters = parsed.characters || {protagonistes: [], antagonistes: [], neutres: [], stands: []};
+                    gallery = parsed.gallery || [];
+                    changelog = parsed.changelog || [];
+                    characterIdCounter = parsed.characterIdCounter || 1;
+                }
+            } catch (error) {
+                console.log('Erreur de chargement des données connectées');
+                showStatus('Impossible de charger la base de données', 'error');
+            }
+        }
+
+        async function saveToCloud() {
+            try {
+                const data = {
+                    characters: characters,
+                    gallery: gallery,
+                    changelog: changelog,
+                    characterIdCounter: characterIdCounter,
+                    lastUpdate: new Date().toISOString()
+                };
+                
+                await window.storage.set(`kellenny-data-${myDatabaseId}`, JSON.stringify(data), true);
+                showStatus('Synchronisation réussie', 'success');
+            } catch (error) {
+                showStatus('Erreur de synchronisation', 'error');
+                console.error(error);
+            }
+        }
+
+        async function connectToDatabase() {
+            const inputId = document.getElementById('connectInput').value.trim();
+            
+            if (!inputId) {
+                showStatus('Veuillez entrer un ID', 'error');
+                return;
+            }
+
+            showStatus('Connexion en cours...', 'info');
+
+            try {
+                const data = await window.storage.get(`kellenny-data-${inputId}`, true);
+                
+                if (!data || !data.value) {
+                    showStatus('Base de données introuvable', 'error');
+                    return;
+                }
+
+                const parsed = JSON.parse(data.value);
+                characters = parsed.characters;
+                gallery = parsed.gallery || [];
+                changelog = parsed.changelog || [];
+                connectedDatabaseId = inputId;
+                isAdmin = false;
+
+                localStorage.setItem('kellennyConnectedId', inputId);
+                
+                updateUI();
+                renderAllCategories();
+                renderGallery();
+                showStatus('Connexion réussie en mode lecture', 'success');
+            } catch (error) {
+                showStatus('Erreur de connexion: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        function disconnectDatabase() {
+            localStorage.removeItem('kellennyConnectedId');
+            connectedDatabaseId = null;
+            location.reload();
+        }
+
+        function updateUI() {
+            const modeBadge = document.getElementById('modeBadge');
+            const currentMode = document.getElementById('currentMode');
+            const addBtn = document.getElementById('addBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const adminSection = document.getElementById('adminSection');
+            const connectSection = document.getElementById('connectSection');
+            const disconnectSection = document.getElementById('disconnectSection');
+            const databaseIdEl = document.getElementById('databaseId');
+            const uploadSection = document.getElementById('uploadSection');
+
+            if (isAdmin) {
+                modeBadge.textContent = '🔑 ADMIN';
+                modeBadge.className = 'mode-badge mode-admin';
+                currentMode.innerHTML = '<div class="status-success">Vous êtes en mode ADMINISTRATEUR</div>';
+                addBtn.disabled = false;
+                addBtn.style.display = 'block';
+                saveBtn.style.display = 'block';
+                uploadSection.style.display = 'block';
+                adminSection.style.display = 'block';
+                connectSection.style.display = 'block';
+                disconnectSection.style.display = 'none';
+                databaseIdEl.textContent = myDatabaseId;
+            } else {
+                modeBadge.textContent = '👁 LECTURE';
+                modeBadge.className = 'mode-badge mode-readonly';
+                currentMode.innerHTML = '<div class="status-info">Vous êtes connecté en mode LECTURE SEULE</div>';
+                addBtn.disabled = true;
+                addBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+                uploadSection.style.display = 'none';
+                adminSection.style.display = 'none';
+                connectSection.style.display = 'none';
+                disconnectSection.style.display = 'block';
+            }
+
+            updateChangelog();
+        }
+
+        async function copyDatabaseId() {
+            try {
+                await navigator.clipboard.writeText(myDatabaseId);
+                showStatus('ID copié dans le presse-papier !', 'success');
+            } catch (error) {
+                const textArea = document.createElement('textarea');
+                textArea.value = myDatabaseId;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showStatus('ID copié !', 'success');
+                } catch (err) {
+                    showStatus('Erreur de copie', 'error');
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function addToChangelog(action, details) {
+            changelog.unshift({
+                action: action,
+                details: details,
+                timestamp: new Date().toISOString()
+            });
+            
+            if (changelog.length > 50) {
+                changelog = changelog.slice(0, 50);
+            }
+        }
+
+        function updateChangelog() {
+            const changelogEl = document.getElementById('changelog');
+            
+            if (changelog.length === 0) {
+                changelogEl.innerHTML = '<div style="color: #666; text-align: center;">Aucune modification</div>';
+                return;
+            }
+
+            changelogEl.innerHTML = changelog.map(entry => {
+                const date = new Date(entry.timestamp);
+                const formatted = date.toLocaleString('fr-FR');
+                return `
+                    <div class="changelog-entry">
+                        <div style="color: #ff6666; font-weight: bold;">${entry.action}</div>
+                        <div>${entry.details}</div>
+                        <div class="changelog-date">${formatted}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showStatus(message, type) {
+            const container = document.getElementById('statusMessages');
+            const div = document.createElement('div');
+            div.className = `status-message status-${type}`;
+            div.textContent = message;
+            container.appendChild(div);
+            
+            setTimeout(() => {
+                div.remove();
+            }, 3000);
+        }
+
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.getElementById('sideMenu').classList.toggle('open');
+        });
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(tab).classList.add('active');
+                currentCategory = tab;
+            });
+        });
+
+        const modal = document.getElementById('modal');
+        const addBtn = document.getElementById('addBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const form = document.getElementById('characterForm');
+
+        addBtn.addEventListener('click', () => {
+            if (!isAdmin) return;
+            
+            editMode = false;
+            document.getElementById('modalTitle').textContent = 'NOUVEAU DOSSIER';
+            modal.classList.add('active');
+            document.getElementById('category').value = currentCategory === 'galerie' ? 'protagonistes' : currentCategory;
+            form.reset();
+        });
+
+        saveBtn.addEventListener('click', async () => {
+            if (!isAdmin) return;
+            
+            saveBtn.textContent = '⏳';
+            saveBtn.disabled = true;
+            
+            await saveToCloud();
+            
+            setTimeout(() => {
+                saveBtn.textContent = '💾';
+                saveBtn.disabled = false;
+            }, 1000);
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            form.reset();
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!isAdmin) {
+                showStatus('Action non autorisée', 'error');
+                return;
+            }
+            
+            const characterName = document.getElementById('name').value.trim();
+            const categoryValue = document.getElementById('category').value;
+            const timelineValue = document.getElementById('timeline').value;
+            
+            if (!characterName || !categoryValue || !timelineValue) {
+                showStatus('Tous les champs obligatoires doivent être remplis', 'error');
+                return;
+            }
+            
+            if (editMode) {
+                const index = parseInt(document.getElementById('editIndex').value);
+                const oldCategory = document.getElementById('editCategory').value;
+                const newCategory = categoryValue;
+                
+                // Garder l'ID existant
+                const existingId = characters[oldCategory][index].id;
+                
+                const character = {
+                    id: existingId,
+                    name: characterName,
+                    category: categoryValue,
+                    timeline: timelineValue,
+                    role: document.getElementById('role').value.trim(),
+                    affiliation: document.getElementById('affiliation').value.trim(),
+                    status: document.getElementById('status').value.trim(),
+                    description: document.getElementById('description').value.trim()
+                };
+                
+                characters[oldCategory].splice(index, 1);
+                characters[newCategory].push(character);
+                
+                addToChangelog('Modification', `${characterName} (${existingId})`);
+                
+                renderCharacters(oldCategory);
+                if (oldCategory !== newCategory) {
+                    renderCharacters(newCategory);
+                }
+            } else {
+                // Nouveau personnage - générer un ID automatique
+                const newId = generateCharacterId();
+                
+                const character = {
+                    id: newId,
+                    name: characterName,
+                    category: categoryValue,
+                    timeline: timelineValue,
+                    role: document.getElementById('role').value.trim(),
+                    affiliation: document.getElementById('affiliation').value.trim(),
+                    status: document.getElementById('status').value.trim(),
+                    description: document.getElementById('description').value.trim()
+                };
+                
+                characters[categoryValue].push(character);
+                addToChangelog('Ajout', `${characterName} (${newId})`);
+                renderCharacters(categoryValue);
+            }
+            
+            await saveToCloud();
+            updateChangelog();
+            updateGalleryCharacterList();
+            modal.classList.remove('active');
+            form.reset();
+            editMode = false;
+            
+            showStatus('Personnage enregistré !', 'success');
+        });
+
+        function editCharacter(category, index) {
+            if (!isAdmin) return;
+            
+            editMode = true;
+            const char = characters[category][index];
+            
+            document.getElementById('modalTitle').textContent = 'MODIFIER DOSSIER';
+            document.getElementById('editIndex').value = index;
+            document.getElementById('editCategory').value = category;
+            document.getElementById('name').value = char.name;
+            document.getElementById('category').value = char.category;
+            document.getElementById('timeline').value = char.timeline || 'liberee';
+            document.getElementById('role').value = char.role || '';
+            document.getElementById('affiliation').value = char.affiliation || '';
+            document.getElementById('status').value = char.status || '';
+            document.getElementById('description').value = char.description || '';
+            
+            modal.classList.add('active');
+        }
+
+        async function deleteCharacter(category, index) {
+            if (!isAdmin) return;
+            
+            const char = characters[category][index];
+            if (confirm(`⚠ ATTENTION ⚠\n\nSupprimer ${char.name} (${char.id}) ?`)) {
+                characters[category].splice(index, 1);
+                addToChangelog('Suppression', `${char.name} (${char.id})`);
+                renderCharacters(category);
+                await saveToCloud();
+                updateChangelog();
+                updateGalleryCharacterList();
+            }
+        }
+
+        function renderCharacters(category) {
+            const grid = document.getElementById(`grid-${category}`);
+            const chars = characters[category];
+
+            if (chars.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📁</div>
+                        <div>AUCUN DOSSIER DANS CETTE CATÉGORIE</div>
+                        ${isAdmin ? '<div style="margin-top: 10px; font-size: 0.9em;">Cliquez sur + pour ajouter</div>' : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            // Tri: d'abord par timeline (libérée puis originelle), puis par ordre alphabétique
+            const sortedChars = [...chars].sort((a, b) => {
+                // Timeline libérée en premier
+                if (a.timeline === 'liberee' && b.timeline === 'originelle') return -1;
+                if (a.timeline === 'originelle' && b.timeline === 'liberee') return 1;
+                // Sinon tri alphabétique par nom
+                return a.name.localeCompare(b.name);
+            });
+
+            grid.innerHTML = sortedChars.map((char) => {
+                const originalIndex = chars.indexOf(char);
+                const timelineClass = char.timeline === 'originelle' ? 'timeline-originelle' : 'timeline-liberee';
+                const timelineText = char.timeline === 'originelle' ? 'Timeline Originelle' : 'Timeline Libérée';
+                
+                return `
+                <div class="character-card">
+                    ${isAdmin ? `
+                    <div class="card-actions">
+                        <button class="icon-btn" onclick="editCharacter('${category}', ${originalIndex})" title="Modifier">✏️</button>
+                        <button class="icon-btn" onclick="deleteCharacter('${category}', ${originalIndex})" title="Supprimer">🗑️</button>
+                    </div>
+                    ` : ''}
+                    <div class="character-name">${char.name}</div>
+                    <div class="character-id">ID: ${char.id}</div>
+                    <div class="timeline-badge ${timelineClass}">${timelineText}</div>
+                    <div class="character-info">
+                        ${char.role ? `<div><span class="info-label">RÔLE:</span> ${char.role}</div>` : ''}
+                        ${char.affiliation ? `<div><span class="info-label">AFFILIATION:</span> ${char.affiliation}</div>` : ''}
+                        ${char.status ? `<div><span class="info-label">STATUT:</span> ${char.status}</div>` : ''}
+                        ${char.description ? `<div style="margin-top: 10px;">${char.description}</div>` : ''}
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function renderAllCategories() {
+            renderCharacters('protagonistes');
+            renderCharacters('antagonistes');
+            renderCharacters('neutres');
+            renderCharacters('stands');
+        }
+
+        // GALERIE
+        const galleryModal = document.getElementById('galleryModal');
+        const galleryForm = document.getElementById('galleryForm');
+        const cancelGalleryBtn = document.getElementById('cancelGalleryBtn');
+        const imageUpload = document.getElementById('imageUpload');
+        const galleryImageInput = document.getElementById('galleryImageInput');
+
+        imageUpload.addEventListener('change', handleImageUpload);
+        galleryImageInput.addEventListener('change', handleGalleryImagePreview);
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            updateGalleryCharacterList();
+            galleryModal.classList.add('active');
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('imagePreview').innerHTML = `<img src="${event.target.result}" style="max-width: 100%; border-radius: 5px;">`;
+                document.getElementById('galleryImageInput').dataset.imageData = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleGalleryImagePreview(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('imagePreview').innerHTML = `<img src="${event.target.result}" style="max-width: 100%; border-radius: 5px;">`;
+                document.getElementById('galleryImageInput').dataset.imageData = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateGalleryCharacterList() {
+            const select = document.getElementById('galleryCharacter');
+            const allChars = Object.values(characters).flat();
+            
+            select.innerHTML = '<option value="">-- Sélectionner --</option>' + 
+                allChars.map(char => `<option value="${char.id}">${char.name} (${char.id})</option>`).join('');
+        }
+
+        cancelGalleryBtn.addEventListener('click', () => {
+            galleryModal.classList.remove('active');
+            galleryForm.reset();
+            document.getElementById('imagePreview').innerHTML = '';
+        });
+
+        galleryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!isAdmin) {
+                showStatus('Action non autorisée', 'error');
+                return;
+            }
+
+            const imageData = document.getElementById('galleryImageInput').dataset.imageData;
+            const characterId = document.getElementById('galleryCharacter').value;
+            const description = document.getElementById('galleryDescription').value;
+
+            if (!imageData) {
+                showStatus('Aucune image sélectionnée', 'error');
+                return;
+            }
+
+            const allChars = Object.values(characters).flat();
+            const character = allChars.find(c => c.id === characterId);
+
+            if (!character) {
+                showStatus('Personnage introuvable', 'error');
+                return;
+            }
+
+            gallery.push({
+                image: imageData,
+                characterId: characterId,
+                characterName: character.name,
+                description: description,
+                timestamp: new Date().toISOString()
+            });
+
+            addToChangelog('Galerie', `Image ajoutée pour ${character.name}`);
+            await saveToCloud();
+            updateChangelog();
+            renderGallery();
+            galleryModal.classList.remove('active');
+            galleryForm.reset();
+            document.getElementById('imagePreview').innerHTML = '';
+            imageUpload.value = '';
+        });
+
+        async function deleteGalleryItem(index) {
+            if (!isAdmin) return;
+            
+            if (confirm('⚠ ATTENTION ⚠\n\nSupprimer cette image ?')) {
+                const item = gallery[index];
+                gallery.splice(index, 1);
+                addToChangelog('Galerie', `Image supprimée (${item.characterName})`);
+                renderGallery();
+                await saveToCloud();
+                updateChangelog();
+            }
+        }
+
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid');
+            
+            if (gallery.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🖼️</div>
+                        <div>AUCUNE IMAGE DANS LA GALERIE</div>
+                        ${isAdmin ? '<div style="margin-top: 10px; font-size: 0.9em;">Cliquez ci-dessus pour ajouter</div>' : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = gallery.map((item, index) => `
+                <div class="gallery-item">
+                    ${isAdmin ? `
+                    <div class="gallery-actions">
+                        <button class="icon-btn" onclick="deleteGalleryItem(${index})" title="Supprimer">🗑️</button>
+                    </div>
+                    ` : ''}
+                    <img src="${item.image}" class="gallery-image" alt="${item.characterName}">
+                    <div class="gallery-info">
+                        <div class="gallery-character">${item.characterName}</div>
+                        ${item.description ? `<div style="color: #ccc; font-size: 0.9em;">${item.description}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.editCharacter = editCharacter;
+        window.deleteCharacter = deleteCharacter;
+        window.deleteGalleryItem = deleteGalleryItem;
+        window.connectToDatabase = connectToDatabase;
+        window.disconnectDatabase = disconnectDatabase;
+        window.copyDatabaseId = copyDatabaseId;
+
+        init();
+
+        if (!isAdmin && connectedDatabaseId) {
+            setInterval(async () => {
+                try {
+                    const data = await window.storage.get(`kellenny-data-${connectedDatabaseId}`, true);
+                    if (data && data.value) {
+                        const parsed = JSON.parse(data.value);
+                        characters = parsed.characters;
+                        gallery = parsed.gallery || [];
+                        changelog = parsed.changelog || [];
+                        renderAllCategories();
+                        renderGallery();
+                        updateChangelog();
+                    }
+                } catch (error) {
+                    console.error('Erreur de synchronisation:', error);
+                }
+            }, 10000);
+        }
+    </script>
+</body>
+</html>
